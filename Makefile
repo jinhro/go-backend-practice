@@ -16,4 +16,7 @@ dropdb:
 test:
 	go test -v -cover ./...
 
+sqlc:
+	sqlc generate
+	
 .PHONY: postgres migrateup migratedown test

@@ -41,6 +41,8 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit()
 }
 
+var txKey = struct{}{}
+
 // TransferTx performs transfer from one account to another
 // It creates a transfer record, add account entries, and update accounts balance within a single transaction
 func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -77,8 +79,25 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		//TODO: Update account balance here
-		
+		// Update account balance
+		result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+			ID: arg.FromAccountId,
+			Amount: -arg.Amount,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+			ID: arg.ToAccountId,
+			Amount: arg.Amount,
+		})
+
+		if err != nil {
+			return err
+		}	
+
 		return nil
 	})
 
