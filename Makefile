@@ -7,4 +7,10 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "postgresql://postgres:postgres@localhost:5432/bank?sslmode=disable" -verbose down
 
+createdb:
+	docker exec -it go-backend-practice createdb --username postgres --owner postgres bank
+	
+dropdb:
+	docker exec -it go-backend-practice dropdb bank                                 
+
 .PHONY: postgres migrateup migratedown
