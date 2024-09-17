@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,8 +21,12 @@ func TestTransferTx(t *testing.T) {
 	errs := make(chan error)
 	results := make(chan TransferTxResult)
 
+	var wg sync.WaitGroup
+
 	for i := 0; i < n; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			ctx := context.Background()
 			result, err := store.TransferTx(ctx, TransferTxParams{
 				FromAccountId: account1.ID,
@@ -33,7 +38,13 @@ func TestTransferTx(t *testing.T) {
 			results <- result
 		}()
 	}
-	
+
+	go func() {
+		wg.Wait()
+		close(errs)
+		close(results)
+	}()
+
 	// Check results
 	existed := make(map[int]bool)
 	for i := 0; i < n; i++ {
@@ -141,7 +152,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 			errs <- err
 		}()
 	}
-	
+
 	// Check results
 	for i := 0; i < n; i++ {
 		err := <- errs
