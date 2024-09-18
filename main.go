@@ -4,28 +4,26 @@ import (
 	"database/sql"
 	"jinhro/go-backend-practice/api"
 	db "jinhro/go-backend-practice/db/sqlc"
+	"jinhro/go-backend-practice/util"
 	"log"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://postgres:postgres@localhost:5432/bank?sslmode=disable"
-	serverAddress = "localhost:8088"
-)
-
 func main() {
-	var err error
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("failed to load config:", err)
+	}
 
-	conn, err := sql.Open(dbDriver, dbSource)
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db:", err)
 	}
 
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}
