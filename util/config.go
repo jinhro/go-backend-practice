@@ -18,7 +18,7 @@ func LoadConfig(path string) (config Config, err error) {
 
 	// Overwrite with environment variables if exist
 	viper.AutomaticEnv()
-
+	
 	err = viper.ReadInConfig()
 	if err != nil {
 		return
